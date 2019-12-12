@@ -1,0 +1,28 @@
+{
+    "name": "klapuch/lock",
+    "type": "library",
+    "description": "Locking mechanisms",
+    "homepage": "https://github.com/klapuch/Lock",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dominik Klapuch",
+            "email": "dominik.klapuch@csfd.cz",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.3",
+        "ext-sysvsem": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Klapuch\\Lock\\": "Core"
+        }
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^0.12.0",
+        "phpstan/phpstan-strict-rules": "^0.12.0",
+        "jakub-onderka/php-parallel-lint": "^1.0"
+    }
+}
