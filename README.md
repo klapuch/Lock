@@ -7,3 +7,5 @@ Lock mechanisms
 ## Installation
 
 - `composer require klapuch/lock`
+
+Keep one instance of [SemaphoreFactory](Core/SemaphoreFactory.php), because locks don't work correctly.
