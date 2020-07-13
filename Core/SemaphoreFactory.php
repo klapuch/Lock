@@ -8,17 +8,17 @@ final class SemaphoreFactory
 	private $semaphores;
 
 
-	public function createMutex(string $name): Semaphore
+	public function createMutex(string $name, int $permission = 0666): Semaphore
 	{
-		return $this->createSemaphore($name, 1);
+		return $this->createSemaphore($name, 1, $permission);
 	}
 
 
-	public function createSemaphore(string $name, int $maxAcquire): Semaphore
+	public function createSemaphore(string $name, int $maxAcquire, int $permission = 0666): Semaphore
 	{
 		$name .= ".$maxAcquire";
 		if (!isset($this->semaphores[$name])) {
-			$this->semaphores[$name] = new Semaphore($name, $maxAcquire);
+			$this->semaphores[$name] = new Semaphore($name, $maxAcquire, $permission);
 		}
 		return $this->semaphores[$name];
 	}

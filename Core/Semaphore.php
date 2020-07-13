@@ -10,14 +10,18 @@ final class Semaphore extends Lock
 	/** @var int */
 	private $maxAcquire;
 
+	/** @var int */
+	private $permission;
+
 	/** @var resource|null */
 	private $handler;
 
 
-	public function __construct(string $name, int $maxAcquire)
+	public function __construct(string $name, int $maxAcquire, int $permission)
 	{
 		parent::__construct($name);
 		$this->maxAcquire = $maxAcquire;
+		$this->permission = $permission;
 	}
 
 
@@ -72,7 +76,7 @@ final class Semaphore extends Lock
 	private function createResource()
 	{
 		/** @var resource|false $handler */
-		$handler = sem_get(self::key($this->getName()), $this->maxAcquire, 0600, 1);
+		$handler = sem_get(self::key($this->getName()), $this->maxAcquire, $this->permission, 1);
 		if ($handler === false) {
 			throw new CreateLockException(sprintf('Can not get semaphore "%s".', $this->getName()));
 		}
