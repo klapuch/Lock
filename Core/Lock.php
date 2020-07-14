@@ -3,7 +3,6 @@
 namespace Klapuch\Lock;
 
 use Klapuch\Lock\Exceptions\AcquireException;
-use Klapuch\Lock\Exceptions\ZombieException;
 
 abstract class Lock implements Lockable
 {
@@ -17,26 +16,6 @@ abstract class Lock implements Lockable
 	}
 
 
-	/**
-	 * @param float $interval [seconds]
-	 */
-	public function wait(float $interval = 1.0): void
-	{
-		$maxTime = time() + 3600;
-		$i = 0;
-		do {
-			if ($i > 0) {
-				if (time() > $maxTime) {
-					throw new ZombieException('Too long wait for exclusive lock.');
-				}
-				usleep((int) ($interval * 1E6));
-			}
-			$lock = $this->tryAcquire();
-			++$i;
-		} while (!$lock);
-	}
-
-
 	public function release(): void
 	{
 		if (!$this->tryRelease()) {
@@ -47,13 +26,12 @@ abstract class Lock implements Lockable
 
 	/**
 	 * @param callable $callback
-	 * @param float $interval [seconds]
 	 * @return mixed
 	 */
-	public function synchronized(callable $callback, float $interval = 1.0)
+	public function synchronized(callable $callback)
 	{
 		try {
-			$this->wait($interval);
+			$this->wait();
 			return $callback();
 		} finally {
 			$this->release();
@@ -64,6 +42,15 @@ abstract class Lock implements Lockable
 	final protected function getName(): string
 	{
 		return $this->name;
+	}
+
+
+	/**
+	 * Here you can implement active waiting, if you locking mechanism does not support better way
+	 */
+	protected function wait(): void
+	{
+		$this->acquire();
 	}
 
 }
