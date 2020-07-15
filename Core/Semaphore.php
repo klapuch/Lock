@@ -30,8 +30,7 @@ final class Semaphore extends Lock
 		if ($this->handler !== null) {
 			throw new AcquireException(sprintf('Semaphore "%s" is already acquired.', $this->getName()));
 		}
-		$this->handler = $this->getResource();
-		if (!sem_acquire($this->handler)) {
+		if (!sem_acquire($this->getResource())) {
 			throw new AcquireException(sprintf('Can not acquire "%s".', $this->getName()));
 		}
 	}
@@ -39,12 +38,7 @@ final class Semaphore extends Lock
 
 	public function tryAcquire(): bool
 	{
-		$handler = $this->getResource();
-		if (!sem_acquire($handler, true)) {
-			return false;
-		}
-		$this->handler = $handler;
-		return true;
+		return sem_acquire($this->getResource(), true);
 	}
 
 
