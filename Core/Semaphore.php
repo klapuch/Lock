@@ -2,8 +2,7 @@
 
 namespace Klapuch\Lock;
 
-use Klapuch\Lock\Exceptions\AcquireException;
-use Klapuch\Lock\Exceptions\CreateLockException;
+use Klapuch\Lock\Exceptions;
 
 final class Semaphore extends Lock
 {
@@ -20,7 +19,7 @@ final class Semaphore extends Lock
 	private $acquired = false;
 
 
-	public function __construct(string $name, int $maxAcquire, int $permission)
+	public function __construct(string $name, int $maxAcquire, int $permission = 0666)
 	{
 		parent::__construct($name);
 		$this->maxAcquire = $maxAcquire;
@@ -31,10 +30,10 @@ final class Semaphore extends Lock
 	public function acquire(): void
 	{
 		if ($this->acquired) {
-			throw new AcquireException(sprintf('Semaphore "%s" is already acquired.', $this->getName()));
+			throw new Exceptions\AcquireException(sprintf('Semaphore "%s" is already acquired.', $this->getName()));
 		}
 		if (!sem_acquire($this->getResource())) {
-			throw new AcquireException(sprintf('Can not acquire "%s".', $this->getName()));
+			throw new Exceptions\AcquireException(sprintf('Can not acquire "%s".', $this->getName()));
 		}
 		$this->acquired = true;
 	}
@@ -84,7 +83,7 @@ final class Semaphore extends Lock
 		/** @var resource|false $handler */
 		$handler = sem_get(self::key($this->getName()), $this->maxAcquire, $this->permission, 1);
 		if ($handler === false) {
-			throw new CreateLockException(sprintf('Can not get semaphore "%s".', $this->getName()));
+			throw new Exceptions\CreateLockException(sprintf('Can not get semaphore "%s".', $this->getName()));
 		}
 		return $handler;
 	}
