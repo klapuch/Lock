@@ -16,6 +16,9 @@ final class Semaphore extends Lock
 	/** @var resource|null */
 	private $handler;
 
+	/** @var bool */
+	private $acquired = false;
+
 
 	public function __construct(string $name, int $maxAcquire, int $permission)
 	{
@@ -27,28 +30,37 @@ final class Semaphore extends Lock
 
 	public function acquire(): void
 	{
-		if ($this->handler !== null) {
+		if ($this->acquired) {
 			throw new AcquireException(sprintf('Semaphore "%s" is already acquired.', $this->getName()));
 		}
 		if (!sem_acquire($this->getResource())) {
 			throw new AcquireException(sprintf('Can not acquire "%s".', $this->getName()));
 		}
+		$this->acquired = true;
 	}
 
 
 	public function tryAcquire(): bool
 	{
+		$this->acquired = true;
 		return sem_acquire($this->getResource(), true);
 	}
 
 
 	public function tryRelease(): bool
 	{
-		if ($this->handler === null || !sem_release($this->handler)) {
+		if ($this->acquired === false) {
 			return false;
 		}
+		$this->acquired = false;
+		return sem_release($this->handler);
+	}
+
+
+	public function destroy(): void
+	{
+		$this->tryRelease();
 		$this->handler = null;
-		return true;
 	}
 
 

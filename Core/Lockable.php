@@ -24,4 +24,8 @@ interface Lockable
 
 	function tryRelease(): bool;
 
+
+	/** destroy resource */
+	function destroy(): void;
+
 }

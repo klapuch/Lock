@@ -37,6 +37,11 @@ final class SemaphoreTest extends TestCase
 		Assert::true($semaphore->synchronized(function () {
 			return true;
 		}));
+
+		$semaphore->destroy();
+		Assert::true($semaphore->synchronized(function () {
+			return true;
+		}));
 	}
 
 }
