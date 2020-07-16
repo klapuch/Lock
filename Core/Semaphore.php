@@ -48,7 +48,7 @@ final class Semaphore extends Lock
 
 	public function tryRelease(): bool
 	{
-		if ($this->acquired === false) {
+		if ($this->acquired === false || $this->handler === null) {
 			return false;
 		}
 		$this->acquired = false;
