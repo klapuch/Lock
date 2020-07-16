@@ -1,73 +1,97 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace Klapuch\Lock;
 
-final class Semaphore {
-	/** @var string */
-	private $name;
+use Klapuch\Lock\Exceptions;
+
+final class Semaphore extends Lock
+{
+	/** @var int */
+	private $maxAcquire;
+
+	/** @var int */
+	private $permission;
 
 	/** @var resource|null */
 	private $handler;
 
-	public function __construct(string $name) {
-		$this->name = $name;
+	/** @var bool */
+	private $acquired = false;
+
+
+	public function __construct(string $name, int $maxAcquire, int $permission = 0666)
+	{
+		parent::__construct($name);
+		$this->maxAcquire = $maxAcquire;
+		$this->permission = $permission;
 	}
 
-	public function acquire(): void {
-		$this->handler = $this->createResource();
-		if (!sem_acquire($this->handler)) {
-			throw new \RuntimeException(sprintf('Can not acquire "%s"', $this->name));
+
+	public function acquire(): void
+	{
+		if ($this->acquired) {
+			throw new Exceptions\AcquireException(sprintf('Semaphore "%s" is already acquired.', $this->getName()));
 		}
+		if (!sem_acquire($this->getResource())) {
+			throw new Exceptions\AcquireException(sprintf('Can not acquire "%s".', $this->getName()));
+		}
+		$this->acquired = true;
 	}
 
-	public function tryAcquire(): bool {
-		$handler = $this->createResource();
-		if (!sem_acquire($handler, true)) {
+
+	public function tryAcquire(): bool
+	{
+		$this->acquired = true;
+		return sem_acquire($this->getResource(), true);
+	}
+
+
+	public function tryRelease(): bool
+	{
+		if ($this->acquired === false || $this->handler === null) {
 			return false;
 		}
-		$this->handler = $handler;
-		return true;
+		$this->acquired = false;
+		return sem_release($this->handler);
 	}
 
-	public function release(): void {
-		if ($this->handler === null) {
-			throw new \RuntimeException(sprintf('First you must acquire "%s"', $this->name));
-		}
-		if (!sem_release($this->handler)) {
-			throw new \RuntimeException(sprintf('Can not release "%s"', $this->name));
-		}
+
+	public function destroy(): void
+	{
+		$this->tryRelease();
 		$this->handler = null;
 	}
 
-	/**
-	 * @param callable $callback
-	 * @return mixed
-	 */
-	public function synchronized(callable $callback) {
-		try {
-			$this->acquire();
-			return $callback();
-		} finally {
-			$this->release();
-		}
-	}
 
 	/**
 	 * @return resource
 	 */
-	private function createResource() {
-		if ($this->handler !== null) {
-			throw new \RuntimeException(sprintf('Semaphore "%s" is already acquired', $this->name));
+	private function getResource()
+	{
+		if ($this->handler === null) {
+			$this->handler = $this->createResource();
 		}
+		return $this->handler;
+	}
+
+
+	/**
+	 * @return resource
+	 */
+	private function createResource()
+	{
 		/** @var resource|false $handler */
-		$handler = sem_get(self::key($this->name));
+		$handler = sem_get(self::key($this->getName()), $this->maxAcquire, $this->permission, 1);
 		if ($handler === false) {
-			throw new \RuntimeException(sprintf('Can not get semaphore "%s"', $this->name));
+			throw new Exceptions\CreateLockException(sprintf('Can not get semaphore "%s".', $this->getName()));
 		}
 		return $handler;
 	}
 
-	private static function key(string $name): int {
+
+	private static function key(string $name): int
+	{
 		return crc32($name);
 	}
+
 }
