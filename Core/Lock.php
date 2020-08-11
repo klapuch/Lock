@@ -38,6 +38,24 @@ abstract class Lock implements Lockable
 	}
 
 
+	/**
+	 * @return mixed
+	 */
+	public function trySynchronized(\Closure $onCriticalSection, \Closure $onNoLock = null)
+	{
+		if ($this->tryAcquire()) {
+			try {
+				return $onCriticalSection();
+			} finally {
+				$this->release();
+			}
+		} elseif ($onNoLock !== null) {
+			return $onNoLock();
+		}
+		return null;
+	}
+
+
 	final protected function getName(): string
 	{
 		return $this->name;
