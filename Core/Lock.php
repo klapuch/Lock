@@ -25,14 +25,13 @@ abstract class Lock implements Lockable
 
 
 	/**
-	 * @param callable $callback
 	 * @return mixed
 	 */
-	public function synchronized(callable $callback)
+	public function synchronized(\Closure $onCriticalSection)
 	{
 		try {
 			$this->wait();
-			return $callback();
+			return $onCriticalSection();
 		} finally {
 			$this->release();
 		}
