@@ -41,8 +41,11 @@ final class Semaphore extends Lock
 
 	public function tryAcquire(): bool
 	{
-		$this->acquired = true;
-		return sem_acquire($this->getResource(), true);
+		$acquired = sem_acquire($this->getResource(), true);
+		if ($acquired) {
+			$this->acquired = true;
+		}
+		return $acquired;
 	}
 
 

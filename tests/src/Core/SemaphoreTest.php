@@ -44,6 +44,20 @@ final class SemaphoreTest extends TestCase
 		}));
 	}
 
+
+	public function testTryAcquire()
+	{
+		$factory = new SemaphoreFactory();
+
+		$mutex = $factory->createMutex(__METHOD__);
+		$mutex2 = $factory->createMutex(__METHOD__);
+		Assert::true($mutex->tryAcquire());
+
+		Assert::false($mutex2->tryAcquire());
+		unset($mutex2);
+		$mutex->release();
+	}
+
 }
 
 (new SemaphoreTest())->run();
