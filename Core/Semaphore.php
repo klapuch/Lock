@@ -15,7 +15,10 @@ final class Semaphore extends Lock
 	/** @var resource|null */
 	private $handler;
 
-	/** @var bool */
+	/**
+	 * deadlock protection, in one process call twice acquire()
+	 * @var bool
+	 */
 	private $acquired = false;
 
 
@@ -51,11 +54,11 @@ final class Semaphore extends Lock
 
 	public function tryRelease(): bool
 	{
-		if ($this->acquired === false || $this->handler === null) {
-			return false;
+		$this->acquired = $release = false;
+		if ($this->handler !== null) {
+			$release = @sem_release($this->handler); // intentionally @
 		}
-		$this->acquired = false;
-		return sem_release($this->handler);
+		return $release;
 	}
 
 

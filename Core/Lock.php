@@ -70,10 +70,4 @@ abstract class Lock implements Lockable
 		$this->acquire();
 	}
 
-
-	public function __destruct()
-	{
-		$this->destroy();
-	}
-
 }
