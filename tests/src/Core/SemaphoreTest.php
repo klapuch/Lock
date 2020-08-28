@@ -16,7 +16,6 @@ use Tester\TestCase;
 final class SemaphoreTest extends TestCase
 {
 
-
 	public function testAlreadyAcquired(): void
 	{
 		$semaphore = self::createMutex(__METHOD__);
@@ -80,6 +79,16 @@ final class SemaphoreTest extends TestCase
 		Assert::true($semaphore->tryAcquire());
 		Assert::false($semaphore->tryAcquire());
 		$semaphore->release();
+	}
+
+
+	public function testTwiceTryRelease(): void
+	{
+		$mutex = self::createMutex(__METHOD__);
+
+		$mutex->acquire();
+		Assert::true($mutex->tryRelease());
+		Assert::false($mutex->tryRelease());
 	}
 
 
